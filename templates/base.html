@@ -1,0 +1,39 @@
+<!-- root/templates/base.html -->
+
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{% block title %}Моя веб-страница{% endblock %}</title>
+
+    {% block style %}
+        <link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}">
+        <link rel="stylesheet" href="{% static 'css/external.css' %}">
+    {% endblock %}
+
+    {% block head %}{% endblock %}
+</head>
+<body>
+    <header>
+        {% include 'include/nav_menu.html' %}
+    </header>
+
+    <div class="content">
+        {% block content %}{% endblock %}
+    </div>
+
+    {% block scripts %}
+        <script src="{% static 'js/jquery.min.js' %}"></script>
+        <script src="{% static 'js/bootstrap.min.js' %}"></script>
+    {% endblock %}
+
+    <footer>
+        {% block footer %}{% endblock %}
+    </footer>
+</body>
+</html>
+
+
+

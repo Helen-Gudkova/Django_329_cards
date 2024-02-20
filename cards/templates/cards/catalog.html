@@ -1,0 +1,15 @@
+<!-- cards/templates/cards/catalog.html -->
+
+{% extends 'base.html' %}
+
+{% block title %}Каталог карточек - Моя Веб-Страница{% endblock %}
+
+{% block content %}
+    <h2>Каталог карточек</h2>
+     <ul>
+        {% for card in card_list %}
+            <li><a href="{% url 'card_detail' card.id_card %}">{{ card.question }}</a></li>
+        {% endfor %}
+    </ul>
+{% endblock %}
+
