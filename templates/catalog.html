@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+
+{% block title %}Каталог карточек - Моя Веб-Страница{% endblock %}
+
+{% load static %}
+
+{% block content %}
+    <h2>Каталог карточек</h2>
+    <div class="sort-buttons">
+    <a href="{% url 'catalog' %}?sort=date&order=desc" class="sort-button {% if current_sort == 'date' and not current_order %}active{% endif %}">По дате (убывание по умолчанию)</a>
+    <a href="{% url 'catalog' %}?sort=date&order=asc" class="sort-button">По дате по возрастанию</a>
+    <a href="{% url 'catalog' %}?sort=views&direction=desc" class="sort-button {% if current_sort == 'views' %}active{% endif %}">По количеству просмотров</a>
+    <a href="{% url 'catalog' %}?sort=adds&order=asc" class="sort-button {% if current_sort == 'adds' %}active{% endif %}">По количеству добавлений</a>
+    </div>
+    <ul>
+        {% for card in card_list %}
+           <li><a href="{% url 'card_detail' card.id %}">{{ card.question }}</a></li>
+        {% endfor %}
+    </ul>
+{% endblock %}
+
+
+
+
+
+
+

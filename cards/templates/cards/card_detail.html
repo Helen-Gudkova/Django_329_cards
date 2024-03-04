@@ -1,17 +1,24 @@
 <!-- cards/templates/cards/card_detail.html -->
 
-{% extends 'base.html' %}
-
-{% block title %}Детальная информация о карточке{% endblock %}
-
-{% block content %}
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Детали карточки</title>
+</head>
+<body>
+    <h1>Детали карточки</h1>
     <h2>{{ card.question }}</h2>
-    <p>Автор: {{ card.id_author }}</p>
-    <p>Дата загрузки: {{ card.upload_date }}</p>
-    <p>Просмотры: {{ card.views_count }}; Избранное: {{ card.favorites_count }}</p>
-    <p>Тема: {{ card.category }}</p>
-    <p>Теги: {{ card.tags|join:", " }}</p>
-    <p>Ответ: {{ card.answer }}</p>
-{% endblock %}
+    <p>{{ card.answer }}</p>
+
+    <h3>Теги:</h3>
+    <ul>
+        {% for tag in tags %}
+            <li>{{ tag }}</li>
+        {% endfor %}
+    </ul>
+</body>
+</html>
+
+
 
 

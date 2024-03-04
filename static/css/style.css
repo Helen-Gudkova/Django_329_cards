@@ -1,0 +1,53 @@
+/* style.css */
+
+.sort-button {
+  background-color: lavender;
+  color: white;
+  text-decoration: none;
+  padding: 4px 8px; /* Измените значения для дополнительного уменьшения размеров кнопки */
+  border-radius: 4px;
+  margin-right: 8px; /* Измените значение для уменьшения отступа между кнопками */
+  font-size: 12px; /* Измените значение для дополнительного уменьшения размера шрифта */
+}
+
+.sort-button:first-child {
+  order: -1;
+}
+
+.sort-button:hover {
+  background-color: mediumpurple;
+}
+
+.sort-button.active {
+  background-color: mediumpurple;
+}
+
+.toggle-sort-order {
+  background-color: lavender;
+  color: white;
+  text-decoration: none;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-style: italic;
+  transition: border-color 0.3s ease;
+}
+
+.toggle-sort-order:hover {
+  border-color: #6C436D;
+}
+
+div.sort-order-button:hover .toggle-sort-order {
+  border: 2px solid #6C436D;
+  background-color: mediumpurple; /* Добавьте эту строку, чтобы изменить фон при наведении */
+}
+
+div.sort-order-button .toggle-sort-order {
+  border: none;
+  background-color: lavender; /* Добавьте эту строку, чтобы вернуть фон по умолчанию */
+}
+
+div.sort-order-button {
+  margin-top: 10px; /* Понизьте кнопку с помощью отступа */
+}
+
+
