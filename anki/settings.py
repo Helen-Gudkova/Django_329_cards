@@ -25,6 +25,7 @@ SECRET_KEY = 'django-insecure-wc#6=w$tkk$wn33_yqymv2huz2n3%6h)18y@v-cry(*cx6++#r
 DEBUG = True
 
 ALLOWED_HOSTS = []
+SESSION_ENGINE = 'django.contrib.sessions.backends.db'
 
 # Application definition
 
@@ -76,7 +77,7 @@ WSGI_APPLICATION = 'anki.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'NAME': os.path.join(BASE_DIR, 'lesson_47.db'),
     }
 }
 

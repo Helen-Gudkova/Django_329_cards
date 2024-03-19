@@ -18,7 +18,9 @@ from django.http import HttpResponse
 from django.shortcuts import render
 from django.template.context_processors import request
 from django.shortcuts import render, get_object_or_404
-from .models import Card
+from .models import Card, Tag
+from .models import Card, CardTags
+
 import json
 
 """
@@ -109,23 +111,17 @@ def about(request):
 
 
 def catalog(request):
-    sort = request.GET.get('sort', 'date')
+    sort = request.GET.get('sort', 'upload_date')
     sort_options = {
-        'date': '-upload_date',
-        'views': '-views',
-        'adds': '-adds',
+        'upload_date': '-UploadDate',
+        'views': '-Views',
+        'favorites': '-Favorites',
     }
     order = request.GET.get('order', 'desc')
 
     card_list = Card.objects.order_by(sort_options[sort])
     if order == 'asc':
-        if sort == 'date':  # Добавляем условие для представления по умолчанию по дате
-            card_list = card_list.order_by(sort_options[sort])
-        else:
-            card_list = card_list.reverse()
-    else:
-        if sort == 'date':  # Добавляем условие для представления по умолчанию по дате
-            card_list = card_list.reverse()
+        card_list = card_list.reverse()
 
     context = {
         'card_list': card_list,
@@ -135,25 +131,38 @@ def catalog(request):
     return render(request, 'catalog.html', context)
 
 
-# def card_detail(request, card_id):
-#     card = None
-#     for c in cards_dataset:
-#         if c['id_card'] == card_id:
-#             card = c
-#             break
-#
-#     if card is None:
-#         return render(request, 'card_not_found.html')
-#
-#     return render(request, 'cards/card_detail.html', {'card': card})
-
 def card_detail(request, card_id):
-    card = get_object_or_404(Card, id=card_id)
-    tags = json.loads(card.tags)
-    context = {
-        'card': card,
-        'tags': tags
+    card = get_object_or_404(Card, card_id=card_id)
+    return render(request, 'card_detail.html', {'card': card})
+
+
+def get_cards_by_tag(request, tag_id):
+    tag = get_object_or_404(Tag, TagID=tag_id)
+    cards = tag.Cards.all().distinct()
+    return render(request, 'cards_by_tag.html', {'tag_cards': cards})
+
+
+def get_categories(request):
+    """
+    Возвращает все категории для представления в каталоге
+    """
+    # Проверка работы базового шаблона
+    return render(request, 'base.html', info)
+
+
+def get_detail_card_by_id(request, card_id):
+    """
+    /cards/<int:card_id>/detail/
+    Возвращает шаблон cards/templates/cards/card_detail.html с детальной информацией по карточке
+    """
+
+    # Добываем карточку из БД через get_object_or_404
+    # если карточки с таким id нет, то вернется 404
+    card = {
+        "card": get_object_or_404(Card, id=card_id),
+        "menu": info["menu"],
     }
-    return render(request, 'cards/card_detail.html', context)
+
+    return render(request, 'cards/card_detail.html', card, status=200)
 
 

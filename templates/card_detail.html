@@ -1,0 +1,11 @@
+{% extends 'base.html' %}
+
+{% block title %}Карточка {{ card.card_id }} - Моя Веб-Страница{% endblock %}
+
+{% block content %}
+    <h2>{{ card.Question }}</h2>
+    <p>{{ card.Answer }}</p>
+    <!-- Дополнительная информация о карточке -->
+{% endblock %}
+
+

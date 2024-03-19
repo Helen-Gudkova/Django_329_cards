@@ -1,4 +1,3 @@
-<!-- catalog.html -->
 {% extends 'base.html' %}
 
 {% block title %}Каталог карточек - Моя Веб-Страница{% endblock %}
@@ -7,7 +6,7 @@
 
 {% block content %}
     <h2>Каталог карточек</h2>
-    {% for card in card_list %}
+    {% for card in tag_cards %}
         <div class="card">
             <a href="{% url 'card_detail' card.card_id %}">{{ card.Question }}</a>
             <ul>
