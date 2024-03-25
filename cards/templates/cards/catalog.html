@@ -1,16 +1,12 @@
 <!-- cards/templates/cards/catalog.html -->
-
-{% extends 'base.html' %}
-
-{% block title %}Каталог карточек - Моя Веб-Страница{% endblock %}
-
+<!-- Использует шаблон cards/templates/cards/include/card_preview.html -->
+{% extends "base.html" %}
 {% block content %}
-    <h2>Каталог карточек</h2>
-    <ul>
-        {% for card in card_list %}
-            <li><a href="{% url 'card_detail' card.id %}">{{ card.question }}</a></li>
-        {% endfor %}
-    </ul>
+<h1>Каталог карточек Anki для интервального повторения</h1>
+<p>Здесь вы можете выбрать карточки для изучения</p>
+<p>На текущий момент, у нас карточек: {{cards_count}} </p>
+{% for card in cards %}
+    {% include "cards/include/card_preview.html" %}
+{% endfor %}
 {% endblock %}
-
 
