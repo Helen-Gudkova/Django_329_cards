@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from django.db.models import F, Q
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect
@@ -11,7 +13,7 @@ from django.shortcuts import get_object_or_404
 from django.shortcuts import render
 from .forms import CardModelForm
 from cards.models import Category, Card, Tag
-import uuid
+from django.utils import timezone
 from django.core.paginator import Paginator
 
 
@@ -151,18 +153,22 @@ def add_card(request):
     if request.method == 'POST':
         form = CardModelForm(request.POST)
         if form.is_valid():
-            card = form.save()
-            # Редирект на страницу созданной карточки после успешного сохранения
-            return redirect(card.get_absolute_url())
+            Question = form.cleaned_data['Question']
+            Answer = form.cleaned_data['Answer']
+            Category=form.cleaned_data['Category']
+            UploadDate = timezone.now()
 
+            card = Card(Question=Question, Answer=Answer, Category=Category, UploadDate=UploadDate)
+            card.save()  # Сохраняем модель, чтобы получить значение card_id
+
+            tags = form.cleaned_data['tags']  # Получаем список тегов из формы
+            card.tags.set(tags)  # Добавляем отношения многие-ко-многим
+
+            return redirect('card_detail', card_id=card.id)
     else:
         form = CardModelForm()
 
-    context = {
-        'form': form,
-        'menu': info['menu'],
-    }
-
+    context = {'form': form}
     return render(request, 'cards/add_card.html', context)
 
 

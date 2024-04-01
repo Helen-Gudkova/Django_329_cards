@@ -65,7 +65,7 @@ class Card(models.Model):
         db_table = 'Cards'
 
     def __str__(self):
-        return f'Card {self.card_id}: {self.Question[:50]}'
+        return self.Question
 
 
 

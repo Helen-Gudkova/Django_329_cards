@@ -36,7 +36,7 @@ class CardModelForm(forms.ModelForm):
             tag_name = tag_name.strip()
             if tag_name:  # Проверяем, не пустая ли строка после удаления пробелов
                 tag, created = Tag.objects.get_or_create(Name=tag_name)
-                self.instance.tags.add(tag)
+                self.instance.tags.add(Tag)
 
         return instance
 
