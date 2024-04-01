@@ -2,6 +2,7 @@ from datetime import timezone, datetime
 from django.utils import timezone
 from django.db import models
 import datetime
+import uuid
 # Create your models here.
 class Category(models.Model):
     Category_id = models.AutoField(primary_key=True, db_column='CategoryID')

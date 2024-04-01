@@ -51,8 +51,9 @@ class CardAdmin(admin.ModelAdmin):
     ordering = ('-UploadDate', 'Question')
     list_per_page = 20
     actions = ['mark_as_checked', 'mark_as_unchecked']
+    fields = ('Question', 'Answer', 'Category_id') 
     readonly_fields = ('tags',)  # Использовать readonly_fields вместо fields
-    filter_vertical = ('tags',)  # Добавьте filter_vertical для вертикального отображения списка тегов
+    #filter_vertical = ('tags',)  # Добавьте filter_vertical для вертикального отображения списка тегов
 
     def tags_list(self, obj):
         return ", ".join([tag.name for tag in obj.tags.all()])
@@ -66,10 +67,9 @@ class CardAdmin(admin.ModelAdmin):
 
     # list_editable = ('category_name',) # Редактируемое поле
     # Добавляем метод для отображения названия категории
-    @admin.display(description="Категория", ordering='category_id__name')
+    @admin.display(description="Категория", ordering='Category_id__name')
     def category_name(self, obj):
-        return obj.Category.Name
-    category_name.short_description = 'Категория'
+        return obj.Category_id.Name if obj.Category_id else 'Без категории'
     # Дополнительный метод для отображения списка тегов
     @admin.display(description="Теги", ordering='tags__name')
     def tags_list(self, obj):

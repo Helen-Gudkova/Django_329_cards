@@ -1,10 +1,18 @@
-from django.db.models import F
+from django.db.models import F, Q
 from django.http import HttpResponse
-from django.shortcuts import render
-from .models import Card
-from django.shortcuts import get_object_or_404
+from django.shortcuts import get_object_or_404, redirect
 from django.views.decorators.cache import cache_page
-
+from django.http import HttpResponseRedirect
+from django.shortcuts import render
+from .forms import CardModelForm
+from django.core.paginator import Paginator
+from django.shortcuts import render, redirect
+from django.shortcuts import get_object_or_404
+from django.shortcuts import render
+from .forms import CardModelForm
+from cards.models import Category, Card, Tag
+import uuid
+from django.core.paginator import Paginator
 
 
 info = {
@@ -47,9 +55,14 @@ def catalog(request):
     # Считываем параметры из GET запроса
     sort = request.GET.get('sort', 'UploadDate')  # по умолчанию сортируем по дате загрузки
     order = request.GET.get('order', 'desc')  # по умолчанию используем убывающий порядок
-
+    search_query = request.GET.get('search_query', '')  # поиск по вопросу
+    page_number = request.GET.get('page', 1)  # Номер страницы
     # Сопоставляем параметр сортировки с полями модели
-    valid_sort_fields = {'UploadDate', 'views', 'favorites'}  # Исправил 'adds' на 'favorites', предполагая, что это опечатка
+    valid_sort_fields = {'UploadDate','Views','Favorites'}  # Исправил 'adds' на 'favorites', предполагая, что это опечатка
+    if sort == 'Views':  # обработайте новое имя поля правильно
+        sort = 'Views'
+    if sort == 'Favorites':  # обработайте новое имя поля правильно
+        sort = 'Favorites'
     if sort not in valid_sort_fields:
         sort = 'UploadDate'  # Возвращаемся к сортировке по умолчанию, если передан неверный ключ сортировки
 
@@ -59,15 +72,29 @@ def catalog(request):
     else:
         order_by = f'-{sort}'
 
-    # Получаем отсортированные карточки через ЖАДНУЮ ЗАГРУЗКУ
-    cards = Card.objects.prefetch_related('tags').order_by(order_by)
+    if not search_query:
+        # Получаем отсортированные карточки через ЖАДНУЮ ЗАГРУЗКУ
+        cards = Card.objects.prefetch_related('tags').order_by(order_by)
 
+    else:
+        # Фильтруем карточки по вопросу
+        # cards = Card.objects.filter(question__icontains=search_query).prefetch_related('tags').order_by(order_by)
+
+        # Жадная загрузка с использованием фильтра и Q-объектов (содержание в вопросе или ответе)
+        # cards = Card.objects.prefetch_related('tags').filter(Q(question__icontains=search_query) | Q(answer__icontains=search_query)).order_by(order_by)
+
+        # Жадная загрузка с использованием фильтра и Q-объектов (содержание в вопросе или совпадение с тегом) уникальные объекты
+        cards = Card.objects.prefetch_related('tags').filter(Q(Question__icontains=search_query) | Q(tags__Name__icontains=search_query) | Q(Answer__icontains=search_query)).order_by(order_by).distinct()
+
+    # Создаем объект пагинатора
+    paginator = Paginator(cards, 30)
+    page_obj = paginator.get_page(page_number)
     context = {
-        'cards': cards,
-        'cards_count': len(cards),
+        'cards': page_obj,  # Передаем объект страницы в контекст
         'sort': sort,  # Добавлено для возможности отображения текущей сортировки в шаблоне
         'order': order,  # Добавлено для возможности отображения текущего порядка в шаблоне
         'menu': info['menu'],  # Добавлено для отображения меню на странице
+        'page_obj': page_obj,  # Добавлено для передачи объекта страницы в шаблон
     }
     return render(request, 'cards/catalog.html', context)
 
@@ -118,3 +145,25 @@ def get_detail_card_by_id(request, card_id):
     }
 
     return render(request, 'cards/card_detail.html', card, status=200)
+
+
+def add_card(request):
+    if request.method == 'POST':
+        form = CardModelForm(request.POST)
+        if form.is_valid():
+            card = form.save()
+            # Редирект на страницу созданной карточки после успешного сохранения
+            return redirect(card.get_absolute_url())
+
+    else:
+        form = CardModelForm()
+
+    context = {
+        'form': form,
+        'menu': info['menu'],
+    }
+
+    return render(request, 'cards/add_card.html', context)
+
+
+

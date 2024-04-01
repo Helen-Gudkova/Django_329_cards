@@ -25,6 +25,7 @@ INTERNAL_IPS = [
 INSTALLED_APPS = [
     'django_extensions',  # Подключение django-extensions Для shell_plus
     'debug_toolbar',  # Подключение debug_toolbar
+    'markdown',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
