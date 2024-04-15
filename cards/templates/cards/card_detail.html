@@ -9,14 +9,15 @@
       Детальное представление карточки
     </div>
     <div class="card-body">
-      <h5 class="card-title">{% markdown_to_html card.question %}</h5>
-      <p class="card-text">{% markdown_to_html card.answer %}</p>
+      <h5 class="card-title">{% markdown_to_html card.Question %}</h5>
+      <p class="card-text">{% markdown_to_html card.Answer %}</p>
       <p class="card-text">
         Теги:
         {% for tag in card.tags.all %}
-          <span class="badge bg-secondary"><a href="{% url 'get_cards_by_tag' tag_id=tag.pk %}" class="text-white">{{ tag.name }}</a></span>
+          <span class="badge bg-secondary"><a href="{% url 'get_cards_by_tag' tag_id=tag.pk %}" class="text-white">{{ tag.Name }}</a></span>
         {% endfor %}
       </p>
+	  <p class="card-text"><small class="text-muted">Автор: {{ card.author.username|default:"неизвестен" }}</small></p>
       <div class="d-flex justify-content-between align-items-center mt-3">
 
         <!--    ТУТ 2 КНОПКИ. 1 видно на компьютерах, другую на телефонах.    -->
@@ -31,9 +32,9 @@
         </a>
 
         <div>
-          <i class="bi bi-eye"></i> {{ card.views }}
-          <i class="bi bi-star-fill"></i> {{ card.favorites }}
-          <small class="text-muted d-none d-sm-block">Дата загрузки: {{ card.upload_date }}</small>
+          <i class="bi bi-eye"></i> {{ card.Views }}
+          <i class="bi bi-star-fill"></i> {{ card.Favorites }}
+          <small class="text-muted d-none d-sm-block">Дата загрузки: {{ card.UploadDate }}</small>
         </div>
       </div>
     </div>

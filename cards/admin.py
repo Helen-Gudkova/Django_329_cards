@@ -41,7 +41,22 @@ class CheckStatusFilter(admin.SimpleListFilter):
         if self.value() == 'CHECKED':
             return queryset.filter(check_status=1)
 
+class CardCodeFilter(admin.SimpleListFilter):
+    title = 'Наличие кода'
+    parameter_name = 'has_code'
 
+    def lookups(self, request, model_admin):
+        return (
+            ('yes', 'Да'),
+            ('no', 'Нет'),
+        )
+
+    def queryset(self, request, queryset):
+        if self.value() == 'yes':
+            return queryset.filter(Answer__contains='```')
+        elif self.value() == 'no':
+            return queryset.exclude(Answer__contains='```')
+            
 @admin.register(Card)
 class CardAdmin(admin.ModelAdmin):
     list_display = ('get_questions', 'check_status', 'UploadDate', 'category_name', 'tags_list', 'brief_info')

@@ -25,6 +25,7 @@ INTERNAL_IPS = [
 INSTALLED_APPS = [
     'django_extensions',  # Подключение django-extensions Для shell_plus
     'debug_toolbar',  # Подключение debug_toolbar
+    'jazzmin',
     'markdown',
     'django.contrib.admin',
     'django.contrib.auth',
@@ -33,7 +34,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'cards.apps.CardsConfig',
-
+    'users',
 ]
 
 MIDDLEWARE = [
@@ -62,6 +63,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'users.context_processors.get_menu',
             ],
         },
     },
@@ -101,6 +103,9 @@ AUTH_PASSWORD_VALIDATORS = [
 # https://docs.djangoproject.com/en/4.2/topics/i18n/
 
 LANGUAGE_CODE = 'ru-ru'  # Язык в админке
+LOGIN_REDIRECT_URL = '/users/thanks/'
+
+AUTH_USER_MODEL = 'auth.User'
 
 TIME_ZONE = 'UTC' # Часовой пояс для всего проекта
 
@@ -117,3 +122,9 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+
+    }
+}

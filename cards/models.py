@@ -1,8 +1,17 @@
 from datetime import timezone, datetime
 from django.utils import timezone
 from django.db import models
+from django.urls import reverse
+import logging
+from django.contrib.auth import get_user_model
 import datetime
 import uuid
+
+# Создаем или получаем экземпляр логгера
+logger = logging.getLogger(__name__)
+
+# Устанавливаем базовый уровень логирования. В продакшене вы можете выбрать уровень WARNING или ERROR
+logging.basicConfig(level=logging.DEBUG)
 # Create your models here.
 class Category(models.Model):
     Category_id = models.AutoField(primary_key=True, db_column='CategoryID')
@@ -60,12 +69,25 @@ class Card(models.Model):
     check_status = models.BooleanField(choices=tuple(map(lambda x: (bool(x[0]), x[1]), Status.choices)),
                                        default=Status.UNCHECKED, db_column='CheckStatus')
     tags = models.ManyToManyField(Tag, through=CardTags, related_name='Cards')
+    author = models.ForeignKey(get_user_model(), on_delete=models.CASCADE, db_column='AuthorID', verbose_name='Автор', related_name='cards', null=True, default=None)
 
     class Meta:
         db_table = 'Cards'
 
     def __str__(self):
         return self.Question
+# Опишем get_absolute_url для модели Card - метод, который возвращает URL карточки
+    # Псевдоним - detail_card_by_id
+    # reverse - возвращает URL по псевдониму
+    def get_absolute_url(self):
+        return reverse('detail_card_by_id', kwargs={'pk': self.card_id})
+
+    def save(self, *args, **kwargs):
+        # Логируем перед сохранением объекта
+        logger.debug(f'Сохранение карточки {self.card_id}, значения: {self.__dict__}')
+
+        super().save(*args, **kwargs)  # Вызываем оригинальный метод save
+
 
 
 

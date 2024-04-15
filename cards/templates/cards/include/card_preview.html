@@ -1,7 +1,7 @@
 {% load markdown_to_html %}
-
+<!-- Краткое представление карточки cards/templates/cards/include/card_preview.html -->
 <div class="card mb-3 light">
-  <div class="row g-0">
+  <div class="row g-0 ">
     <div class="col-md-3 d-flex align-items-center justify-content-center">
       <div class="p-3 d-none d-md-block">
         <i class="bi bi-question-circle-fill" style="font-size: 3rem;"></i>
@@ -15,24 +15,32 @@
         <p class="card-text">
           Теги:
           {% for tag in card.tags.all %}
-            <span class="badge bg-secondary"><a href="{% url 'get_cards_by_tag' tag_id=tag.pk %}" class="text-white">{{ tag.Name }}</a></span>
+            <span class="badge bg-secondary"><a href="{% url 'get_cards_by_tag' tag_id=tag.pk %}" class="text-white">{{ tag.name }}</a></span>
           {% endfor %}
+		  <p class="card-text"><small class="text-muted">Автор: {{ card.author.username|default:"неизвестен" }}</small></p>
         </p>
+        <!-- Горизонтальное выравнивание для элементов даты, просмотров, добавлений и кнопки -->
+
         <div class="d-flex justify-content-between align-items-center mt-2">
           <small class="text-muted d-none d-sm-block">Дата загрузки: {{ card.UploadDate }}</small>
-          <div class="ms-auto">
+          <div class="ms-auto"> <!-- Добавлен класс ms-auto для сдвига вправо -->
             <i class="bi bi-eye"></i> {{ card.Views }}
             <i class="bi bi-star-fill"></i> {{ card.Favorites }}
           </div>
-          <a href="{% url 'detail_card_by_id' card_id=card.pk %}" class="btn btn-dark btn-sm ms-3 d-block d-sm-none">
-            <i class="bi bi-arrow-right"></i>
-          </a>
-          <a href="{% url 'detail_card_by_id' card_id=card.pk %}" class="btn btn-dark btn-sm ms-3 d-none d-sm-block">
-            Подробнее
-          </a>
+
+        <!--    ТУТ 2 КНОПКИ. 1 видно на компьютерах, другую на телефонах.    -->
+          <!-- Кнопка для sm и меньше (только иконка) -->
+<a href="{% url 'detail_card_by_id' pk=card.pk %}" class="btn btn-dark btn-sm ms-3 d-block d-sm-none">
+    <i class="bi bi-arrow-right"></i>
+</a>
+
+<!-- Кнопка для sm и больше (полный текст) -->
+<a href="{% url 'detail_card_by_id' pk=card.pk %}" class="btn btn-dark btn-sm ms-3 d-none d-sm-block">
+    Подробнее
+</a>
+
         </div>
       </div>
     </div>
   </div>
 </div>
-

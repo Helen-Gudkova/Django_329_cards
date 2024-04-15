@@ -1,7 +1,8 @@
 from datetime import datetime
+from linecache import cache
 
-from django.db.models import F, Q
-from django.http import HttpResponse
+from django.db.models import F, Q,Prefetch
+from django.http import HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect
 from django.views.decorators.cache import cache_page
 from django.http import HttpResponseRedirect
@@ -10,12 +11,21 @@ from .forms import CardModelForm
 from django.core.paginator import Paginator
 from django.shortcuts import render, redirect
 from django.shortcuts import get_object_or_404
+from django.views.generic import TemplateView
+from django.views.generic.list import ListView
+from django.template.loader import render_to_string
+from django.views import View
+from django.views.generic import TemplateView
+from django.views.generic.list import ListView
+from django.views.generic.detail import DetailView
+from django.views.generic.edit import CreateView, UpdateView
+from django.urls import reverse_lazy
 from django.shortcuts import render
 from .forms import CardModelForm
 from cards.models import Category, Card, Tag
 from django.utils import timezone
 from django.core.paginator import Paginator
-
+from django.contrib.auth.mixins import LoginRequiredMixin
 
 info = {
     "users_count": 100500,
@@ -32,74 +42,69 @@ info = {
          "url_name": "catalog"},
     ],
 }
+class MenuMixin:
+    def get_context_data(self, **kwargs):
+        # Вызываем родительский метод, чтобы получить контекст представления
+        context = super().get_context_data(**kwargs)
+        # Добавляем информацию о меню в контекст
+        context['menu'] = info['menu']
+        return context
 
 
-def index(request):
-    """Функция для отображения главной страницы
-    будет возвращать рендер шаблона root/templates/main.html"""
-    return render(request, "main.html", info)
+# Главная страница
+class IndexView(TemplateView):
+     template_name = 'main.html'  # Указываем имя шаблона для отображения
+     # Предполагаем, что info - это словарь с данными, который мы хотим передать в шаблон
+     extra_context = info
 
+# Страница "О нас"
+class AboutView(TemplateView):
+    template_name = 'about.html'  # Аналогично указываем имя шаблона
+    extra_context = info
 
-def about(request):
-    """Функция для отображения страницы "О проекте"
-    будет возвращать рендер шаблона /root/templates/about.html"""
-    return render(request, 'about.html', info)
+# Каталог
+class CatalogView(MenuMixin, ListView):
+    model = Card  # Указываем модель, данные которой мы хотим отобразить
+    template_name = 'cards/catalog.html'  # Путь к шаблону, который будет использоваться для отображения страницы
+    context_object_name = 'cards'  # Имя переменной контекста, которую будем использовать в шаблоне
+    paginate_by = 30  # Количество объектов на странице
 
+    # Метод для модификации начального запроса к БД
+    def get_queryset(self):
+        # Получение параметров сортировки из GET-запроса
+        sort = self.request.GET.get('sort', 'UploadDate')
+        order = self.request.GET.get('order', 'desc')
+        search_query = self.request.GET.get('search_query', '')
+        if order == 'asc':
+             order_by = sort
+        else:
+            order_by = f'-{sort}'
+        queryset = Card.objects.prefetch_related('tags').all()
 
-@cache_page(60 * 15)  # Кэширует на 15 минут
-def catalog(request):
-    """
-    Функция для отображения каталога карточек с возможностью сортировки.
-    Параметры GET запроса:
-    - sort: ключ для сортировки (допустимые значения: 'upload_date', 'views', 'adds').
-    - order: порядок сортировки ('asc' для возрастания, 'desc' для убывания; по умолчанию 'desc').
-    """
-    # Считываем параметры из GET запроса
-    sort = request.GET.get('sort', 'UploadDate')  # по умолчанию сортируем по дате загрузки
-    order = request.GET.get('order', 'desc')  # по умолчанию используем убывающий порядок
-    search_query = request.GET.get('search_query', '')  # поиск по вопросу
-    page_number = request.GET.get('page', 1)  # Номер страницы
-    # Сопоставляем параметр сортировки с полями модели
-    valid_sort_fields = {'UploadDate','Views','Favorites'}  # Исправил 'adds' на 'favorites', предполагая, что это опечатка
-    if sort == 'Views':  # обработайте новое имя поля правильно
-        sort = 'Views'
-    if sort == 'Favorites':  # обработайте новое имя поля правильно
-        sort = 'Favorites'
-    if sort not in valid_sort_fields:
-        sort = 'UploadDate'  # Возвращаемся к сортировке по умолчанию, если передан неверный ключ сортировки
+        # Фильтрация карточек по поисковому запросу и сортировка
+        # select_related - для оптимизации запроса, чтобы избежать дополнительных запросов к БД
+        if search_query:
+            queryset = queryset.filter(
+                Q(Question__icontains=search_query) |
+                Q(Answer__icontains=search_query) |
+                Q(tags__Name__icontains=search_query)
+            ).distinct().order_by(order_by)
+        else:
+            queryset = queryset.order_by(order_by)
 
-    # Обрабатываем порядок сортировки
-    if order == 'asc':
-        order_by = sort
-    else:
-        order_by = f'-{sort}'
+        return queryset
 
-    if not search_query:
-        # Получаем отсортированные карточки через ЖАДНУЮ ЗАГРУЗКУ
-        cards = Card.objects.prefetch_related('tags').order_by(order_by)
+    # Метод для добавления дополнительного контекста
+    def get_context_data(self, **kwargs):
+        # Получение существующего контекста из базового класса
+        context = super().get_context_data(**kwargs)
+        # Добавление дополнительных данных в контекст
+        context['sort'] = self.request.GET.get('sort', 'UploadDate')
+        context['order'] = self.request.GET.get('order', 'desc')
+        context['search_query'] = self.request.GET.get('search_query', '')
 
-    else:
-        # Фильтруем карточки по вопросу
-        # cards = Card.objects.filter(question__icontains=search_query).prefetch_related('tags').order_by(order_by)
-
-        # Жадная загрузка с использованием фильтра и Q-объектов (содержание в вопросе или ответе)
-        # cards = Card.objects.prefetch_related('tags').filter(Q(question__icontains=search_query) | Q(answer__icontains=search_query)).order_by(order_by)
-
-        # Жадная загрузка с использованием фильтра и Q-объектов (содержание в вопросе или совпадение с тегом) уникальные объекты
-        cards = Card.objects.prefetch_related('tags').filter(Q(Question__icontains=search_query) | Q(tags__Name__icontains=search_query) | Q(Answer__icontains=search_query)).order_by(order_by).distinct()
-
-    # Создаем объект пагинатора
-    paginator = Paginator(cards, 30)
-    page_obj = paginator.get_page(page_number)
-    context = {
-        'cards': page_obj,  # Передаем объект страницы в контекст
-        'sort': sort,  # Добавлено для возможности отображения текущей сортировки в шаблоне
-        'order': order,  # Добавлено для возможности отображения текущего порядка в шаблоне
-        'menu': info['menu'],  # Добавлено для отображения меню на странице
-        'page_obj': page_obj,  # Добавлено для передачи объекта страницы в шаблон
-    }
-    return render(request, 'cards/catalog.html', context)
-
+        return context  
+           
 
 
 def get_categories(request):
@@ -139,7 +144,7 @@ def get_detail_card_by_id(request, card_id):
     card_obj = get_object_or_404(Card.objects.prefetch_related('tags'), pk=card_id)
     
     # Обновление счетчика просмотров
-    Card.objects.filter(pk=card_id).update(views=F('views') + 1)
+    Card.objects.filter(pk=card_id).update(views=F('Views') + 1)
     
     card = {
         "card": card_obj,
@@ -148,28 +153,64 @@ def get_detail_card_by_id(request, card_id):
 
     return render(request, 'cards/card_detail.html', card, status=200)
 
+# Детальное представление карточек
+class CardDetailView(MenuMixin, DetailView):
+    model = Card
+    template_name = 'cards/card_detail.html'
+    context_object_name = 'card'
 
-def add_card(request):
-    if request.method == 'POST':
-        form = CardModelForm(request.POST)
-        if form.is_valid():
-            Question = form.cleaned_data['Question']
-            Answer = form.cleaned_data['Answer']
-            Category=form.cleaned_data['Category']
-            UploadDate = timezone.now()
+    # Метод для обновления счетчика просмотров при каждом отображении детальной страницы карточки
+    def get_object(self, queryset=None):
+        # Получаем объект с учетом переданных в URL параметров (в данном случае, pk или id карточки)
+        obj = super().get_object(queryset=queryset)
+        # Увеличиваем счетчик просмотров на 1 с помощью F-выражения для избежания гонки условий
+        Card.objects.filter(pk=obj.pk).update(views=F('Views') + 1)
 
-            card = Card(Question=Question, Answer=Answer, Category=Category, UploadDate=UploadDate)
-            card.save()  # Сохраняем модель, чтобы получить значение card_id
+        # Получаем обновленный объект из БД (+1 запрос в БД)
+        obj.refresh_from_db()
+        return obj
 
-            tags = form.cleaned_data['tags']  # Получаем список тегов из формы
-            card.tags.set(tags)  # Добавляем отношения многие-ко-многим
+class CardUpdateView(LoginRequiredMixin, UpdateView):
+    model = Card  # Указываем модель, с которой работает представление
+    form_class = CardModelForm  # Указываем класс формы для создания карточки
+    template_name = 'cards/add_card.html'  # Указываем шаблон, который будет использоваться для отображения формы
+    redirect_field_name = 'next'  # Имя GET-параметра, в котором хранится URL для перенаправления после входа
+    # После успешного обновления карточки, пользователь будет перенаправлен на страницу этой карточки
+    def get_success_url(self):
+        return reverse_lazy('catalog', kwargs={'pk': self.object.pk})
 
-            return redirect('card_detail', card_id=card.id)
-    else:
-        form = CardModelForm()
+# Форма добавления карточки
+class AddCardCreateView(LoginRequiredMixin, CreateView):
+    model = Card  # Указываем модель, с которой работает представление
+    form_class = CardModelForm  # Указываем класс формы для создания карточки
+    template_name = 'cards/add_card.html'  # Указываем шаблон, который будет использоваться для отображения формы
+    success_url = reverse_lazy('catalog')  # URL для перенаправления после успешного создания карточки
+    redirect_field_name = 'next'
 
-    context = {'form': form}
-    return render(request, 'cards/add_card.html', context)
+    def form_valid(self, form):
+        # Добавляем автора к карточке перед сохранением
+        form.instance.author = self.request.user
+        # Логика обработки данных формы перед сохранением объекта
+        return super().form_valid(form)
 
+def preview_card_ajax(request):
+    if request.method == "POST":
+        question = request.POST.get('Question', '')
+        answer = request.POST.get('Answer', '')
+        category = request.POST.get('Category', '')
 
+        # Генерация HTML для предварительного просмотра
+        html_content = render_to_string('cards/card_detail.html', {
+            'card': {
+                'Question': question,
+                'Answer': answer,
+                'Category': 'Тестовая категория',
+                'tags': ['тест', 'тег'],
 
+            }
+        }
+                                        )
+
+        return JsonResponse({'html': html_content})
+    # return JsonResponse({'error': 'Invalid request'}, status=400)
+    return HttpResponseRedirect('/cards/add/')
