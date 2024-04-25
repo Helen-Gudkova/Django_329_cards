@@ -105,7 +105,7 @@ AUTH_PASSWORD_VALIDATORS = [
 LANGUAGE_CODE = 'ru-ru'  # Язык в админке
 LOGIN_REDIRECT_URL = '/users/thanks/'
 
-AUTH_USER_MODEL = 'auth.User'
+
 
 TIME_ZONE = 'UTC' # Часовой пояс для всего проекта
 
@@ -128,3 +128,15 @@ CACHES = {
 
     }
 }
+AUTHENTICATION_BACKENDS = [
+    'django.contrib.auth.backends.ModelBackend',  # Стандартный бекенд для аутентификации по username
+    'users.authentication.EmailAuthBackend',      # Наш кастомный бекенд для аутентификации по email
+]
+
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+AUTH_USER_MODEL = 'auth.User'
+LOGIN_URL = 'users:login'
+LOGIN_REDIRECT_URL = ''
+
+
+

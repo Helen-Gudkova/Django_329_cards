@@ -154,7 +154,7 @@ def get_detail_card_by_id(request, card_id):
     return render(request, 'cards/card_detail.html', card, status=200)
 
 # Детальное представление карточек
-class CardDetailView(MenuMixin, DetailView):
+class CardDetailView(DetailView):
     model = Card
     template_name = 'cards/card_detail.html'
     context_object_name = 'card'

@@ -84,9 +84,13 @@ class Card(models.Model):
 
     def save(self, *args, **kwargs):
         # Логируем перед сохранением объекта
-        logger.debug(f'Сохранение карточки {self.card_id}, значения: {self.__dict__}')
+        logger.debug(f'Сохранение карточки {self.card_id}, значения: {self.dict}')
+
+        if not self.CardID:  # Проверяем, установлен ли CardID
+            self.CardID = datetime.now().year  # Присваиваем год, если CardID не задан
 
         super().save(*args, **kwargs)  # Вызываем оригинальный метод save
+
 
 
 
